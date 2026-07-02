@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { clearCountryCache, getCountryForIp } from '../api/geo'
 import { getUsers, getUserLogins } from '../api/users'
 import { getMostRecentLogin } from '../utils/login'
 import type { EnrichedUser, LoginStatus, UsersLoadStatus } from '../types'
@@ -11,6 +12,7 @@ type LoginFetchResult = {
   loginStatus: LoginStatus
   lastLoginTime: string | null
   lastLoginIp: string | null
+  lastLoginCountry: string | null
 }
 
 type UseEnrichedUsersOptions = {
@@ -42,6 +44,7 @@ export function useEnrichedUsers(options: UseEnrichedUsersOptions = {}) {
     const fetchId = ++fetchIdRef.current
     loadStartRef.current = performance.now()
     onLoadStart?.()
+    clearCountryCache()
 
     setUsersStatus('loading')
     setUsersError(null)
@@ -71,6 +74,7 @@ export function useEnrichedUsers(options: UseEnrichedUsersOptions = {}) {
         ...user,
         lastLoginTime: null,
         lastLoginIp: null,
+        lastLoginCountry: null,
         loginStatus: 'loading',
       }))
 
@@ -108,12 +112,15 @@ export function useEnrichedUsers(options: UseEnrichedUsersOptions = {}) {
             try {
               const data = await getUserLogins(user.id)
               const latest = getMostRecentLogin(data.logins)
+              const ip = latest?.ip_v4 ?? null
+              const country = ip ? await getCountryForIp(ip) : null
 
               return {
                 userId: user.id,
                 loginStatus: 'success',
                 lastLoginTime: latest?.login_time ?? null,
-                lastLoginIp: latest?.ip_v4 ?? null,
+                lastLoginIp: ip,
+                lastLoginCountry: country,
               }
             } catch {
               return {
@@ -121,6 +128,7 @@ export function useEnrichedUsers(options: UseEnrichedUsersOptions = {}) {
                 loginStatus: 'error',
                 lastLoginTime: null,
                 lastLoginIp: null,
+                lastLoginCountry: null,
               }
             }
           }),
@@ -144,6 +152,7 @@ export function useEnrichedUsers(options: UseEnrichedUsersOptions = {}) {
               loginStatus: result.loginStatus,
               lastLoginTime: result.lastLoginTime,
               lastLoginIp: result.lastLoginIp,
+              lastLoginCountry: result.lastLoginCountry,
             }
           }),
         )

@@ -20,6 +20,7 @@ export type LoginStatus = 'loading' | 'success' | 'error'
 export interface EnrichedUser extends User {
   lastLoginTime: string | null
   lastLoginIp: string | null
+  lastLoginCountry: string | null
   loginStatus: LoginStatus
 }
 

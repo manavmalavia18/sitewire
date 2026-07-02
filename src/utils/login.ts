@@ -1,3 +1,4 @@
+import { differenceInCalendarMonths, formatDistanceToNow } from 'date-fns'
 import type { Login } from '../types'
 
 export function getMostRecentLogin(logins: Login[]): Login | null {
@@ -8,6 +9,14 @@ export function getMostRecentLogin(logins: Login[]): Login | null {
   )
 }
 
-export function formatLoginTime(iso: string): string {
+export function formatLoginTimeHumanized(iso: string): string {
+  return formatDistanceToNow(new Date(iso), { addSuffix: true })
+}
+
+export function formatLoginTimeExact(iso: string): string {
   return new Date(iso).toLocaleString()
+}
+
+export function isInactiveOverOneMonth(iso: string): boolean {
+  return differenceInCalendarMonths(new Date(), new Date(iso)) >= 1
 }

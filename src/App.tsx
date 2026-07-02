@@ -78,6 +78,7 @@ function App() {
       {tab === 'explain' && (
         <div role="tabpanel">
           <ExplainPanel
+            users={users}
             events={events}
             usersStatus={usersStatus}
             userCount={users.length}

@@ -4,6 +4,8 @@ React + TypeScript app for the [Sitewire coding challenge](https://github.com/si
 
 Displays user profiles with last login info from the fake users API, with retry logic, batched fetching, and per-row loading states.
 
+**Bonus features:** humanized login times, country from IP, inactive user highlighting.
+
 ## Tabs
 
 - **Dashboard** — user table with login data

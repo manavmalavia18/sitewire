@@ -1,4 +1,8 @@
-import { formatLoginTime } from '../utils/login'
+import {
+  formatLoginTimeExact,
+  formatLoginTimeHumanized,
+  isInactiveOverOneMonth,
+} from '../utils/login'
 import type { EnrichedUser } from '../types'
 
 type UserRowProps = {
@@ -7,22 +11,44 @@ type UserRowProps = {
 
 export function UserRow({ user }: UserRowProps) {
   const fullName = `${user.first_name} ${user.last_name}`
+  const inactive =
+    user.loginStatus === 'success' &&
+    user.lastLoginTime !== null &&
+    isInactiveOverOneMonth(user.lastLoginTime)
 
   return (
-    <tr>
+    <tr className={inactive ? 'row--inactive' : undefined}>
       <td>{user.id}</td>
-      <td>{fullName}</td>
+      <td>
+        {fullName}
+        {inactive && (
+          <span className="inactive-badge" title="No login in the last month">
+            Inactive
+          </span>
+        )}
+      </td>
       <td>{user.email}</td>
       <td>
         {user.loginStatus === 'loading' && <span className="muted">Loading…</span>}
         {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
         {user.loginStatus === 'success' &&
-          (user.lastLoginTime ? formatLoginTime(user.lastLoginTime) : 'No logins')}
+          (user.lastLoginTime ? (
+            <span title={formatLoginTimeExact(user.lastLoginTime)}>
+              {formatLoginTimeHumanized(user.lastLoginTime)}
+            </span>
+          ) : (
+            'No logins'
+          ))}
       </td>
       <td>
         {user.loginStatus === 'loading' && <span className="muted">Loading…</span>}
         {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
         {user.loginStatus === 'success' && (user.lastLoginIp ?? '—')}
+      </td>
+      <td>
+        {user.loginStatus === 'loading' && <span className="muted">Loading…</span>}
+        {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
+        {user.loginStatus === 'success' && (user.lastLoginCountry ?? '—')}
       </td>
     </tr>
   )

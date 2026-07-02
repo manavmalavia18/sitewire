@@ -1,0 +1,267 @@
+.app {
+  padding: 2rem 1.5rem 3rem;
+  text-align: left;
+}
+
+header {
+  margin-bottom: 1.25rem;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.tabs__btn {
+  margin-bottom: -1px;
+  padding: 0.6rem 1rem;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: none;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.tabs__btn--active {
+  color: var(--text-h);
+  border-bottom-color: var(--text-h);
+  font-weight: 600;
+}
+
+.explain-panel {
+  padding: 0;
+}
+
+.explain-panel__intro {
+  margin: 0 0 1rem;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.explain-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.explain-stat {
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.explain-stat__label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.explain-stat strong {
+  color: var(--text-h);
+  font-size: 0.95rem;
+}
+
+.explain-panel__now {
+  margin-bottom: 1rem;
+  padding: 0.85rem 1rem;
+  border-left: 3px solid var(--text-h);
+  background: var(--bg);
+  border-radius: 0 8px 8px 0;
+}
+
+.explain-panel__now-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.75rem;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.explain-panel__now p {
+  margin: 0;
+  color: var(--text-h);
+}
+
+.explain-panel__now-detail {
+  margin-top: 0.35rem !important;
+  font-size: 0.9rem;
+  color: var(--text) !important;
+}
+
+.explain-panel__progress {
+  margin-bottom: 1rem;
+}
+
+.explain-panel__progress-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.explain-panel__progress-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.explain-panel__progress-fill {
+  height: 100%;
+  background: var(--text-h);
+  transition: width 0.25s ease;
+}
+
+.explain-panel__actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.explain-panel__actions button {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.explain-panel__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.explain-panel__log h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: var(--text-h);
+}
+
+.explain-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.explain-log__item {
+  display: flex;
+  gap: 1rem;
+  align-items: flex-start;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.explain-log__time {
+  flex: 0 0 3.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-h);
+  white-space: nowrap;
+}
+
+.explain-log__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.explain-log__body strong {
+  display: block;
+  color: var(--text-h);
+}
+
+.explain-log__body p {
+  margin: 0.35rem 0 0;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.45;
+}
+
+h1 {
+  margin: 0 0 0.25rem;
+  font-size: 2rem;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text);
+}
+
+.status {
+  margin-bottom: 1.5rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--code-bg);
+}
+
+.status--error {
+  border-color: #f87171;
+}
+
+.status__progress {
+  margin-top: 0.5rem;
+}
+
+.status button {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+
+th,
+td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background: var(--code-bg);
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.muted {
+  color: var(--text);
+  font-style: italic;
+}
+
+.error-text {
+  color: #dc2626;
+}

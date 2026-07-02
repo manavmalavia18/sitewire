@@ -17,7 +17,7 @@ export function BonusTaskExplain({ inactiveCount, countriesLoaded }: BonusTaskEx
 
       <ExplainSectionCard title="Bonus 2 — Country from IP">
         <p className="explain-text">
-          After each login IP is fetched, we look up the country via <code>ipapi.co</code>. IPs
+          After each login IP is fetched, we look up the country via <code>ipwho.is</code>. IPs
           are cached so duplicates are not re-fetched.
         </p>
       </ExplainSectionCard>

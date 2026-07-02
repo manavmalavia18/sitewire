@@ -1,21 +1,26 @@
 const countryCache = new Map<string, string | null>()
 
+type IpWhoResponse = {
+  success?: boolean
+  country?: string
+}
+
 export async function getCountryForIp(ip: string): Promise<string | null> {
   const cached = countryCache.get(ip)
   if (cached !== undefined) return cached
 
   try {
-    const response = await fetch(`https://ipapi.co/${ip}/country_name/`)
+    const response = await fetch(`https://ipwho.is/${ip}`)
 
     if (!response.ok) {
       countryCache.set(ip, null)
       return null
     }
 
-    const country = (await response.text()).trim()
-    const value = country.length > 0 ? country : null
-    countryCache.set(ip, value)
-    return value
+    const data = (await response.json()) as IpWhoResponse
+    const country = data.success && data.country ? data.country : null
+    countryCache.set(ip, country)
+    return country
   } catch {
     countryCache.set(ip, null)
     return null

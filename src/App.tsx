@@ -6,10 +6,10 @@ import { UserTable } from './components/UserTable'
 import { useEnrichedUsers } from './hooks/useEnrichedUsers'
 import { useEventLog } from './hooks/useEventLog'
 
-type Tab = 'dashboard' | 'explain'
+type Tab = 'core' | 'bonus' | 'explain'
 
 function App() {
-  const [tab, setTab] = useState<Tab>('dashboard')
+  const [tab, setTab] = useState<Tab>('core')
   const { events, beginRecording, recordEvent, clearEvents, copyNotes } = useEventLog()
 
   const {
@@ -32,6 +32,18 @@ function App() {
     reload()
   }
 
+  const statusBanner = (
+    <StatusBanner
+      usersStatus={usersStatus}
+      usersError={usersError}
+      userCount={users.length}
+      loginsLoaded={loginsLoaded}
+      loginsTotal={loginsTotal}
+      loginsLoading={loginsLoading}
+      onRetry={handleReload}
+    />
+  )
+
   return (
     <main className="app">
       <header>
@@ -43,11 +55,20 @@ function App() {
         <button
           type="button"
           role="tab"
-          aria-selected={tab === 'dashboard'}
-          className={tab === 'dashboard' ? 'tabs__btn tabs__btn--active' : 'tabs__btn'}
-          onClick={() => setTab('dashboard')}
+          aria-selected={tab === 'core'}
+          className={tab === 'core' ? 'tabs__btn tabs__btn--active' : 'tabs__btn'}
+          onClick={() => setTab('core')}
         >
-          Dashboard
+          Core task
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={tab === 'bonus'}
+          className={tab === 'bonus' ? 'tabs__btn tabs__btn--active' : 'tabs__btn'}
+          onClick={() => setTab('bonus')}
+        >
+          Bonus
         </button>
         <button
           type="button"
@@ -60,18 +81,24 @@ function App() {
         </button>
       </div>
 
-      {tab === 'dashboard' && (
+      {tab === 'core' && (
         <div role="tabpanel">
-          <StatusBanner
-            usersStatus={usersStatus}
-            usersError={usersError}
-            userCount={users.length}
-            loginsLoaded={loginsLoaded}
-            loginsTotal={loginsTotal}
-            loginsLoading={loginsLoading}
-            onRetry={handleReload}
-          />
-          {usersStatus === 'success' && <UserTable users={users} />}
+          <p className="tab-intro">
+            Core challenge — user ID, name, email, last login time, last login IP, and total user
+            count. Handles flaky API with retries, batching, and per-row states.
+          </p>
+          {statusBanner}
+          {usersStatus === 'success' && <UserTable users={users} variant="core" />}
+        </div>
+      )}
+
+      {tab === 'bonus' && (
+        <div role="tabpanel">
+          <p className="tab-intro">
+            Bonus features — humanized login times, country from IP, and inactive user highlighting.
+          </p>
+          {statusBanner}
+          {usersStatus === 'success' && <UserTable users={users} variant="bonus" />}
         </div>
       )}
 

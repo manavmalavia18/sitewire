@@ -63,7 +63,8 @@ export function ExplainPanel({
   return (
     <div className="explain-panel">
       <p className="explain-panel__intro">
-        Walk through the challenge in sections. Switch to Dashboard to see the live table.
+        Walk through the challenge in sections. Use <strong>Core task</strong> and{' '}
+        <strong>Bonus</strong> tabs for the live tables.
       </p>
 
       <div className="explain-section-tabs" role="tablist" aria-label="Explain sections">

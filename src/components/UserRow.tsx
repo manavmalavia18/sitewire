@@ -3,15 +3,18 @@ import {
   formatLoginTimeHumanized,
   isInactiveOverOneMonth,
 } from '../utils/login'
+import type { TableVariant } from './UserTable'
 import type { EnrichedUser } from '../types'
 
 type UserRowProps = {
   user: EnrichedUser
+  variant: TableVariant
 }
 
-export function UserRow({ user }: UserRowProps) {
+export function UserRow({ user, variant }: UserRowProps) {
   const fullName = `${user.first_name} ${user.last_name}`
   const inactive =
+    variant === 'bonus' &&
     user.loginStatus === 'success' &&
     user.lastLoginTime !== null &&
     isInactiveOverOneMonth(user.lastLoginTime)
@@ -33,9 +36,13 @@ export function UserRow({ user }: UserRowProps) {
         {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
         {user.loginStatus === 'success' &&
           (user.lastLoginTime ? (
-            <span title={formatLoginTimeExact(user.lastLoginTime)}>
-              {formatLoginTimeHumanized(user.lastLoginTime)}
-            </span>
+            variant === 'bonus' ? (
+              <span title={formatLoginTimeExact(user.lastLoginTime)}>
+                {formatLoginTimeHumanized(user.lastLoginTime)}
+              </span>
+            ) : (
+              formatLoginTimeExact(user.lastLoginTime)
+            )
           ) : (
             'No logins'
           ))}
@@ -45,11 +52,13 @@ export function UserRow({ user }: UserRowProps) {
         {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
         {user.loginStatus === 'success' && (user.lastLoginIp ?? '—')}
       </td>
-      <td>
-        {user.loginStatus === 'loading' && <span className="muted">Loading…</span>}
-        {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
-        {user.loginStatus === 'success' && (user.lastLoginCountry ?? '—')}
-      </td>
+      {variant === 'bonus' && (
+        <td>
+          {user.loginStatus === 'loading' && <span className="muted">Loading…</span>}
+          {user.loginStatus === 'error' && <span className="error-text">Failed to load</span>}
+          {user.loginStatus === 'success' && (user.lastLoginCountry ?? '—')}
+        </td>
+      )}
     </tr>
   )
 }

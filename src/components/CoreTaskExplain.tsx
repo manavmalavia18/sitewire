@@ -20,66 +20,37 @@ export function CoreTaskExplain({
 }: CoreTaskExplainProps) {
   return (
     <div className="explain-section-content">
-      <ExplainSectionCard title="What was required">
+      <ExplainSectionCard title="What Sitewire asked for">
         <ul className="explain-list">
           <li>Show user ID, full name, email</li>
-          <li>Show last (most recent) login time and IP</li>
-          <li>Show total user count</li>
-          <li>Handle a flaky API (~25% failures, slow responses)</li>
-          <li>Focus on loading, error, and partial-success states</li>
+          <li>Show last login time and IP (the most recent one)</li>
+          <li>Show total number of users</li>
+          <li>Handle a flaky API that fails ~25% of the time</li>
+          <li>Show loading, error, and partial-success clearly</li>
         </ul>
       </ExplainSectionCard>
 
-      <ExplainSectionCard title="How this app solves it">
+      <ExplainSectionCard title="How we solve it (simple)">
         <ul className="explain-list">
           <li>
-            <strong>Retry logic</strong> — up to 3 retries on 500/network errors (500ms between
-            tries) in <code>api/client.ts</code>
+            <strong>Retry</strong> — if API returns 500, try again up to 3 times
           </li>
           <li>
-            <strong>Batching</strong> — 15 login requests at a time in{' '}
-            <code>useEnrichedUsers.ts</code>
+            <strong>Batches of 15</strong> — load logins 15 users at a time, not all at once
           </li>
           <li>
-            <strong>Per-row status</strong> — <code>loginStatus</code>: loading → success or error
-            per user
+            <strong>Table shows first</strong> — names appear right away, logins fill in after
           </li>
           <li>
-            <strong>Progressive UI</strong> — table first, login data fills in batch by batch
+            <strong>Each row has its own status</strong> — loading, success, or failed
           </li>
           <li>
-            <strong>Most recent login</strong> — login arrays are unsorted;{' '}
-            <code>getMostRecentLogin()</code> compares dates
-          </li>
-          <li>
-            <strong>Global vs row errors</strong> — <code>/users</code> failure hides table;
-            single login failure only marks that row
-          </li>
-          <li>
-            <strong>Stale-load guard</strong> — <code>fetchIdRef</code> ignores old responses if
-            Retry is clicked mid-load
+            <strong>Pick newest login</strong> — API sends logins in random order, we compare dates
           </li>
         </ul>
       </ExplainSectionCard>
 
-      <ExplainSectionCard title="Code entry points">
-        <ul className="explain-list explain-list--files">
-          <li>
-            <code>hooks/useEnrichedUsers.ts</code> — main orchestration (start here)
-          </li>
-          <li>
-            <code>api/client.ts</code> — <code>fetchWithRetry</code>
-          </li>
-          <li>
-            <code>components/UserRow.tsx</code> — row-level loading/error display
-          </li>
-          <li>
-            <code>components/StatusBanner.tsx</code> — user count + login progress
-          </li>
-        </ul>
-      </ExplainSectionCard>
-
-      <ExplainSectionCard title="Live status">
+      <ExplainSectionCard title="Live status right now">
         <div className="explain-panel__stats">
           <div className="explain-stat">
             <span className="explain-stat__label">Status</span>
@@ -90,7 +61,7 @@ export function CoreTaskExplain({
             <strong>{userCount}</strong>
           </div>
           <div className="explain-stat">
-            <span className="explain-stat__label">Logins</span>
+            <span className="explain-stat__label">Logins loaded</span>
             <strong>
               {loginsLoaded}/{loginsTotal}
             </strong>

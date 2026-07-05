@@ -14,13 +14,15 @@ Displays user profiles with last login info from the fake users API, with retry 
 
 ## Interview notes (PDF)
 
-Mobile-friendly PDF for interview prep:
+Simple beginner-friendly notes explaining every file. Good for reading on your phone before the interview.
 
 ```bash
 npm run pdf
 ```
 
 Output: `Sitewire-Interview-Notes.pdf` in the project root.
+
+In the app: open the **Interview prep** tab.
 
 ## Local development
 

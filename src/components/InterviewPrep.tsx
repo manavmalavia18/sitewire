@@ -1,295 +1,445 @@
 import { ExplainSectionCard } from './ExplainSectionCard'
 
-const INTERVIEW_NOTES_TEXT = `SITewire Users Dashboard — Interview Notes
-==========================================
+const SIMPLE_NOTES = `SITewire Interview Notes (simple version)
+========================================
 
-DEMO SCRIPT (~5 min)
-1. Dashboard tab — show table appearing first, login columns fill in batch by batch
-2. Status banner — user count + "Loading login data… (X/Y)" progress
-3. Point out per-row states: Loading… → success or "Failed to load"
-4. Load log tab — event timeline with timestamps (great for explaining async flow)
-5. Core task + Bonus tab → Dashboard — humanized dates, country column, inactive rows
-6. Explain tab — quick summary of requirements vs solution
+BIG PICTURE
+This app shows a list of users from an API. For each user it also fetches their last login time and IP address. The API is flaky (sometimes fails), so the app handles loading, errors, and retries.
 
-CHALLENGE RECAP
-- API: https://fake-users-api.vercel.app
-- ~25% random 500 failures, random latency (10ms–3s)
-- GET /users → User[]
-- GET /users/:id/relationships/logins → { user_id, logins[] }
-- Login arrays are UNSORTED — must find most recent by comparing dates
-- Display: ID, full name, email, last login time, last login IP, total user count
-- Focus on loading/error/partial-success states, not visual polish
+HOW TO DEMO (say this on the call)
+1. Open Dashboard - table shows up first, login info loads row by row
+2. Point at the banner - shows how many users, and login loading progress
+3. Show a row that says "Failed to load" if you see one - one user failing does not break the whole page
+4. Open Load log - shows step by step what the app is doing
+5. Switch to Core + Bonus tab - shows extra features (friendly dates, country, inactive users)
 
-TECH STACK
-- React 19 + TypeScript + Vite
-- date-fns — humanized dates + inactive check
-- ipwho.is — free IP → country lookup
-- No router, no Redux/React Query — custom hooks only
+START HERE WHEN THEY ASK ABOUT CODE
+hooks/useEnrichedUsers.ts - this is the brain. It loads users, then loads logins in batches.
 
-FILE MAP
-src/api/client.ts      — fetchWithRetry (3 retries, 500ms delay on 500/network errors)
-src/api/users.ts       — getUsers(), getUserLogins(id)
-src/api/geo.ts         — getCountryForIp() with in-memory cache
-src/hooks/useEnrichedUsers.ts — main orchestration: users → batched logins → enrich rows
-src/hooks/useEventLog.ts      — records load events for demo walkthrough
-src/utils/login.ts     — getMostRecentLogin, formatLoginTime*, isInactiveOverOneMonth
-src/components/        — UserTable, UserRow, StatusBanner, Explain panels
-src/types.ts           — User, Login, EnrichedUser, LoginStatus
+FILE BY FILE
+(see app Interview prep tab for full details)
 
-DATA FLOW (say this out loud)
-1. App mounts → useEnrichedUsers.load() runs
-2. GET /users (with retry) — if this fails entirely, show error + Retry button
-3. On success: render table immediately; every row loginStatus = "loading"
-4. Loop batches of 15 users → Promise.all 15 parallel GET /users/:id/relationships/logins
-5. Per user: retry login fetch → pick most recent login → optional geo lookup → update that row
-6. After each batch: setLoginsLoaded increments → progress bar updates
-7. Failed login fetches become per-row "Failed to load" — other rows still succeed
-
-KEY DECISIONS (and why)
-- Retry (3×, 500ms): handles flaky API without blocking UI forever
-- Batching (15): limits concurrency so browser/API isn't overwhelmed; enables progressive UI
-- Per-row errors: one bad user doesn't fail the whole page (partial success)
-- fetchIdRef: if user hits Retry mid-load, stale responses are ignored
-- EnrichedUser type: extends User with login fields + loginStatus state machine
-- Country cache: many users share IPs; avoids duplicate geo API calls
-- Core vs Bonus variant: same data hook, UI toggles bonus columns/formatting
-
-BONUS FEATURES
-1. Humanized time — formatDistanceToNow ("3 months ago"); hover shows exact timestamp
-2. Country from IP — ipwho.is after login IP fetched; cached per IP
-3. Inactive users — differenceInCalendarMonths >= 1 → red row + "Inactive" badge
-
-LIKELY QUESTIONS
-Q: Why batch size 15?
-A: Balance between speed and not hammering a flaky API. Small enough for progressive updates, large enough for parallelism. Would tune with real metrics.
-
-Q: Why not fetch all logins at once?
-A: 100+ parallel requests on a 25%-failure API creates thundering herd + poor UX. Batching gives incremental feedback.
-
-Q: Why not React Query / SWR?
-A: Challenge is small; wanted to show I understand retry, batching, and state without hiding logic in a library. In production I'd use React Query with per-key retry + staleTime.
-
-Q: What if /users fails vs one login fails?
-A: /users failure = global error (can't show table). Single login failure = row-level error only.
-
-Q: How do you find "most recent" login?
-A: reduce() comparing Date(login_time) — API does not sort the array.
-
-Q: What would you improve?
-A: Exponential backoff, request deduplication, virtualized table for large lists, tests for retry/batch logic, error boundaries, accessibility audit.
-
-API ENDPOINTS USED
-GET https://fake-users-api.vercel.app/users
-GET https://fake-users-api.vercel.app/users/:id/relationships/logins
-GET https://ipwho.is/:ip (bonus only)
+index.html - empty webpage with a div called "root"
+main.tsx - puts the React app into that div
+App.tsx - the whole screen with tabs
+api/client.ts - fetch with retry when API fails
+api/users.ts - calls to get users and logins
+api/geo.ts - turns IP address into country name
+hooks/useEnrichedUsers.ts - loads everything
+hooks/useEventLog.ts - writes the Load log timeline
+utils/login.ts - finds most recent login, formats dates
+types.ts - describes what user data looks like
+components/ - all the visual pieces (table, rows, banners)
 `
 
 export function InterviewPrep() {
   async function copyAllNotes() {
-    await navigator.clipboard.writeText(INTERVIEW_NOTES_TEXT)
+    await navigator.clipboard.writeText(SIMPLE_NOTES)
   }
 
   return (
     <div className="explain-section-content">
-      <ExplainSectionCard title="📱 Demo script (say this on the call)">
+      <ExplainSectionCard title="Start here — what does this app do?">
+        <p className="explain-text">
+          Imagine a spreadsheet of users. This app builds that spreadsheet by talking to a website
+          (an API) that gives user info and login history.
+        </p>
+        <p className="explain-text">
+          The API is <strong>unreliable</strong> — about 1 in 4 requests fail, and some are slow.
+          So the app shows <strong>loading</strong>, <strong>success</strong>, and{' '}
+          <strong>error</strong> states clearly. That is what Sitewire cares about.
+        </p>
+        <p className="explain-text">
+          <strong>Core task:</strong> show ID, name, email, last login time, last login IP, and
+          total user count.
+        </p>
+        <p className="explain-text">
+          <strong>Bonus:</strong> friendly dates ("3 months ago"), country from IP, highlight inactive
+          users.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="How to demo on the call">
         <ol className="explain-list explain-list--ordered">
           <li>
-            Open <strong>Dashboard</strong> — table appears first; login columns say "Loading…"
+            <strong>Dashboard</strong> — table appears first. Login columns say "Loading…" then fill
+            in.
           </li>
           <li>
-            Watch rows fill in <strong>batch by batch</strong> (15 users at a time)
+            <strong>Status banner</strong> — says "100 users" and "Loading login data… (30/100)".
           </li>
           <li>
-            Point to the <strong>status banner</strong>: user count + progress (X/Y logins)
+            If a row says <strong>"Failed to load"</strong> — explain: one user failed, others still
+            work.
           </li>
           <li>
-            Show a <strong>failed row</strong> if any — per-row error, rest still work
+            <strong>Load log</strong> — step-by-step timeline of what happened.
           </li>
           <li>
-            Switch to <strong>Load log</strong> — walk through the event timeline
+            <strong>Core + Bonus</strong> tab → Dashboard — show the 3 bonus features.
           </li>
           <li>
-            Switch to <strong>Core task + Bonus</strong> → Dashboard — humanized dates,
-            country column, inactive highlighting
+            If they ask about code → open <code>hooks/useEnrichedUsers.ts</code> first.
           </li>
         </ol>
       </ExplainSectionCard>
 
-      <ExplainSectionCard title="Challenge recap">
-        <ul className="explain-list">
-          <li>
-            API at <code>fake-users-api.vercel.app</code> — ~25% random 500s, 10ms–3s latency
-          </li>
-          <li>
-            <code>GET /users</code> → list of users;{' '}
-            <code>GET /users/:id/relationships/logins</code> → login history
-          </li>
-          <li>Login arrays are <strong>unsorted</strong> — must compute most recent</li>
-          <li>
-            Show: ID, full name, email, last login time, last login IP, <strong>total user
-            count</strong>
-          </li>
-          <li>They care about <strong>states</strong> (loading, error, partial success), not polish</li>
-        </ul>
-      </ExplainSectionCard>
-
-      <ExplainSectionCard title="Tech stack">
-        <ul className="explain-list">
-          <li>React 19 + TypeScript + Vite</li>
-          <li>
-            <code>date-fns</code> — relative dates + inactive-month check
-          </li>
-          <li>
-            <code>ipwho.is</code> — IP → country (bonus)
-          </li>
-          <li>No router, no state library — custom hooks handle everything</li>
-        </ul>
-      </ExplainSectionCard>
-
-      <ExplainSectionCard title="File map (where to click in code)">
-        <ul className="explain-list explain-list--files">
-          <li>
-            <code>api/client.ts</code> — retry wrapper (3 tries, 500ms delay)
-          </li>
-          <li>
-            <code>api/users.ts</code> — <code>getUsers()</code>, <code>getUserLogins()</code>
-          </li>
-          <li>
-            <code>api/geo.ts</code> — country lookup + IP cache
-          </li>
-          <li>
-            <code>hooks/useEnrichedUsers.ts</code> — <strong>start here</strong> — main load
-            orchestration
-          </li>
-          <li>
-            <code>hooks/useEventLog.ts</code> — event recording for Load log tab
-          </li>
-          <li>
-            <code>utils/login.ts</code> — most-recent login, date formatting, inactive check
-          </li>
-          <li>
-            <code>components/UserRow.tsx</code> — per-row loading/success/error UI
-          </li>
-          <li>
-            <code>types.ts</code> — <code>EnrichedUser</code>, <code>LoginStatus</code>
-          </li>
-        </ul>
-      </ExplainSectionCard>
-
-      <ExplainSectionCard title="Data flow (explain this out loud)">
+      <ExplainSectionCard title="The story of one page load (simple)">
         <ol className="explain-list explain-list--ordered">
-          <li>
-            <code>useEnrichedUsers.load()</code> runs on mount (and on Retry)
-          </li>
-          <li>
-            Fetch all users with retry → on failure: global error banner + Retry button
-          </li>
-          <li>
-            On success: table renders immediately; every row <code>loginStatus = loading</code>
-          </li>
-          <li>
-            Loop batches of 15 → <code>Promise.all</code> 15 parallel login requests
-          </li>
-          <li>
-            Per user: fetch logins → <code>getMostRecentLogin()</code> → geo lookup (bonus) →
-            update row
-          </li>
-          <li>
-            After each batch: progress counter updates; UI re-renders those rows
-          </li>
-          <li>Failed login = row shows "Failed to load"; other rows unaffected</li>
+          <li>App opens → <code>useEnrichedUsers</code> runs automatically.</li>
+          <li>It asks the API: "give me all users." If that fails → show error + Retry button.</li>
+          <li>If users arrive → show the table right away (names, emails). Login cells say "Loading…".</li>
+          <li>Then it fetches logins for 15 users at a time (not all 100 at once).</li>
+          <li>For each user: get logins → pick the newest one → (bonus) look up country → update that row.</li>
+          <li>Repeat until all users are done.</li>
         </ol>
       </ExplainSectionCard>
 
-      <ExplainSectionCard title="Key decisions (and why)">
+      <ExplainSectionCard title="index.html — the empty page">
+        <p className="explain-text">
+          This is the basic HTML page your browser opens. It has almost nothing in it — just a{' '}
+          <code>&lt;div id="root"&gt;</code> where React will draw the whole app.
+        </p>
+        <p className="explain-text">
+          It also loads <code>main.tsx</code> as a script. Think of it as the empty picture frame;
+          React paints the picture inside.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/main.tsx — starts React">
+        <p className="explain-text">
+          This is the <strong>entry point</strong> — the first JavaScript file that runs.
+        </p>
+        <ul className="explain-list">
+          <li>Finds the <code>root</code> div from index.html</li>
+          <li>Puts the <code>App</code> component inside it</li>
+          <li>
+            <code>StrictMode</code> is a React helper that catches mistakes during development
+          </li>
+        </ul>
+        <p className="explain-text">
+          <strong>Say in interview:</strong> "main.tsx bootstraps the app — it mounts App into the
+          DOM."
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/App.tsx — the main screen">
+        <p className="explain-text">
+          This is the <strong>boss component</strong>. It controls the tabs and wires everything
+          together.
+        </p>
         <ul className="explain-list">
           <li>
-            <strong>Retry (3×, 500ms)</strong> — handles ~25% failure rate without giving up
-            immediately
+            <strong>Core task / Core + Bonus</strong> — switches which features the table shows
           </li>
           <li>
-            <strong>Batching (15)</strong> — limits concurrency; enables progressive "rows filling
-            in" UX
+            <strong>Explain / Dashboard / Load log / Interview prep</strong> — switches which panel
+            you see
           </li>
           <li>
-            <strong>Per-row errors</strong> — partial success: one bad API call doesn't break the
-            whole table
+            Calls <code>useEnrichedUsers()</code> to load data — this hook does the real work
           </li>
           <li>
-            <strong>fetchIdRef</strong> — ignores stale responses if user hits Retry mid-load
+            Calls <code>useEventLog()</code> to record events for the Load log tab
           </li>
           <li>
-            <strong>EnrichedUser</strong> — extends <code>User</code> with login fields +
-            status state machine (<code>loading → success | error</code>)
+            Counts inactive users and countries loaded (for the bonus Explain tab)
+          </li>
+        </ul>
+        <p className="explain-text">
+          <strong>Say in interview:</strong> "App.tsx is mostly layout and tabs. The data loading
+          logic lives in the hook, not here."
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/types.ts — what does the data look like?">
+        <p className="explain-text">
+          TypeScript <strong>types</strong> describe the shape of data — like a contract. They help
+          catch mistakes.
+        </p>
+        <ul className="explain-list">
+          <li>
+            <code>User</code> — id, first_name, last_name, email (from /users API)
           </li>
           <li>
-            <strong>Country cache</strong> — duplicate IPs skip extra geo API calls
+            <code>Login</code> — login_time and ip_v4 (one login record)
+          </li>
+          <li>
+            <code>UserLogins</code> — user_id + array of logins
+          </li>
+          <li>
+            <code>LoginStatus</code> — <code>"loading"</code>, <code>"success"</code>, or{' '}
+            <code>"error"</code> for each row
+          </li>
+          <li>
+            <code>EnrichedUser</code> — a User plus login fields and loginStatus. This is what each
+            table row uses.
+          </li>
+        </ul>
+        <p className="explain-text">
+          <strong>Say in interview:</strong> "EnrichedUser is User plus the login info we fetch and
+          add ourselves."
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/types/events.ts — Load log event types">
+        <p className="explain-text">
+          Defines the events written to the Load log tab — things like "users loaded", "batch
+          started", "batch completed".
+        </p>
+        <p className="explain-text">
+          Each event has a title, detail text, stats, and a timestamp. Used only for the demo
+          walkthrough, not for core functionality.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/api/client.ts — fetch with retry">
+        <p className="explain-text">
+          All API calls go through <code>fetchWithRetry</code>. This is how we handle the flaky API.
+        </p>
+        <ul className="explain-list">
+          <li>
+            Sends a request to <code>https://fake-users-api.vercel.app</code> + the path
+          </li>
+          <li>If it gets a 500 error → wait 500ms → try again (up to 3 retries)</li>
+          <li>If the network fails → also retry</li>
+          <li>If it is a different error (like 404) → fail immediately, no retry</li>
+        </ul>
+        <p className="explain-text">
+          <strong>Say in interview:</strong> "I wrapped fetch in retry logic because the challenge
+          says ~25% of requests fail with 500."
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/api/users.ts — get users and logins">
+        <p className="explain-text">Two simple functions that call the API:</p>
+        <ul className="explain-list">
+          <li>
+            <code>getUsers()</code> → <code>GET /users</code> → returns list of users
+          </li>
+          <li>
+            <code>getUserLogins(id)</code> → <code>GET /users/:id/relationships/logins</code> →
+            returns that user's login history
+          </li>
+        </ul>
+        <p className="explain-text">
+          Both use <code>fetchWithRetry</code> from client.ts. This file is thin on purpose — just
+          API endpoints.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/api/geo.ts — IP to country (bonus)">
+        <p className="explain-text">
+          After we have an IP address, this looks up the country using <code>ipwho.is</code>.
+        </p>
+        <ul className="explain-list">
+          <li>
+            <code>getCountryForIp(ip)</code> — calls the geo API, returns country name or null
+          </li>
+          <li>
+            Uses a <code>Map</code> cache — if two users have the same IP, we only look it up once
+          </li>
+          <li>
+            <code>clearCountryCache()</code> — clears cache on reload so data stays fresh
+          </li>
+          <li>If geo lookup fails → returns null, row shows "—". Does not break anything.</li>
+        </ul>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/hooks/useEnrichedUsers.ts — THE BRAIN">
+        <p className="explain-text">
+          <strong>This is the most important file.</strong> Open this when they ask "walk me through
+          the code."
+        </p>
+        <p className="explain-text">What it does, step by step:</p>
+        <ol className="explain-list explain-list--ordered">
+          <li>
+            <code>load()</code> runs on page load (and when you click Retry)
+          </li>
+          <li>Resets state — clears users, sets status to "loading"</li>
+          <li>
+            Calls <code>getUsers()</code> — if it fails, set status to "error" and stop
+          </li>
+          <li>
+            Maps each user to an <code>EnrichedUser</code> with empty login fields and{' '}
+            <code>loginStatus: "loading"</code>
+          </li>
+          <li>
+            Sets status to "success" — table can now render
+          </li>
+          <li>
+            Loops in <strong>batches of 15</strong> — for each batch, runs 15 login fetches in
+            parallel
+          </li>
+          <li>
+            Per user: <code>getUserLogins</code> → <code>getMostRecentLogin</code> →{' '}
+            <code>getCountryForIp</code> → update that row
+          </li>
+          <li>If one user's login fails → that row gets <code>loginStatus: "error"</code></li>
+          <li>
+            <code>fetchIdRef</code> — a number that goes up each reload. Old requests check this
+            and ignore themselves if you clicked Retry mid-load.
+          </li>
+        </ol>
+        <p className="explain-text">
+          <strong>Key numbers:</strong> batch size = 15, retries = 3, retry delay = 500ms.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/hooks/useEventLog.ts — the Load log">
+        <p className="explain-text">
+          Records a timeline of events while data loads. Powers the <strong>Load log</strong> tab
+          for your demo.
+        </p>
+        <ul className="explain-list">
+          <li>
+            <code>beginRecording()</code> — starts fresh when page loads or Retry is clicked
+          </li>
+          <li>
+            <code>recordEvent()</code> — adds one line to the log with a timestamp
+          </li>
+          <li>
+            <code>copyNotes()</code> — copies the log to clipboard
+          </li>
+        </ul>
+        <p className="explain-text">
+          <code>useEnrichedUsers</code> calls <code>recordEvent</code> at each step (users fetched,
+          batch started, batch done, etc.).
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/utils/login.ts — small helpers">
+        <p className="explain-text">Pure functions — no API calls, just data processing:</p>
+        <ul className="explain-list">
+          <li>
+            <code>getMostRecentLogin(logins)</code> — loops through logins, returns the one with the
+            newest date. API does <strong>not</strong> sort them for you.
+          </li>
+          <li>
+            <code>formatLoginTimeHumanized</code> — "3 months ago" (bonus, uses date-fns)
+          </li>
+          <li>
+            <code>formatLoginTimeExact</code> — full date like "7/5/2026, 12:00:00 PM"
+          </li>
+          <li>
+            <code>isInactiveOverOneMonth</code> — true if last login was 1+ calendar months ago
           </li>
         </ul>
       </ExplainSectionCard>
 
-      <ExplainSectionCard title="Retry logic (client.ts)">
-        <ul className="explain-list">
-          <li>Up to 3 retries (4 total attempts) per request</li>
-          <li>500ms delay between attempts</li>
-          <li>Retries on HTTP 500 and network errors</li>
-          <li>Non-500 errors (e.g. 404) fail immediately — no pointless retries</li>
-        </ul>
-      </ExplainSectionCard>
-
-      <ExplainSectionCard title="Bonus features — implementation">
+      <ExplainSectionCard title="src/components/StatusBanner.tsx">
+        <p className="explain-text">The box above the table. Shows one of three states:</p>
         <ul className="explain-list">
           <li>
-            <strong>Humanized time</strong> — <code>formatDistanceToNow</code> from date-fns;
-            <code>title</code> attribute shows exact date on hover
+            <strong>Loading</strong> — "Loading users…" (waiting for /users)
           </li>
           <li>
-            <strong>Country</strong> — after IP fetched, call <code>ipwho.is/{'{ip}'}</code>;
-            result cached in a <code>Map</code>
+            <strong>Error</strong> — "Failed to load users" + Retry button
           </li>
           <li>
-            <strong>Inactive</strong> — <code>differenceInCalendarMonths(now, login) &gt;= 1</code>
-            → red row background + badge
+            <strong>Success</strong> — "100 users" + login progress "Loading login data… (45/100)"
           </li>
         </ul>
       </ExplainSectionCard>
 
-      <ExplainSectionCard title="Questions they might ask">
+      <ExplainSectionCard title="src/components/UserTable.tsx">
+        <p className="explain-text">
+          Draws the HTML table — headers and one <code>UserRow</code> per user.
+        </p>
+        <ul className="explain-list">
+          <li>
+            <code>variant="core"</code> — basic columns only
+          </li>
+          <li>
+            <code>variant="bonus"</code> — adds Country column + legend for inactive users
+          </li>
+        </ul>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/components/UserRow.tsx">
+        <p className="explain-text">One row in the table. Shows different things based on status:</p>
+        <ul className="explain-list">
+          <li>
+            <code>loading</code> → "Loading…" in login columns
+          </li>
+          <li>
+            <code>error</code> → "Failed to load" in red
+          </li>
+          <li>
+            <code>success</code> → actual login time and IP (or "No logins" if empty)
+          </li>
+          <li>Bonus: humanized date with exact date on hover, country column, inactive badge</li>
+        </ul>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/components/LoadLogPanel.tsx">
+        <p className="explain-text">
+          The Load log tab. Shows progress bar, latest event, full event list, Copy and Clear
+          buttons.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/components/CoreTaskExplain.tsx & BonusTaskExplain.tsx">
+        <p className="explain-text">
+          The Explain tab content. Summarizes requirements and how the app solves them, plus live
+          stats (user count, logins loaded, etc.).
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/components/ExplainSectionCard.tsx">
+        <p className="explain-text">
+          A small reusable box with a title — used by all the Explain/Interview panels. Just UI
+          wrapper, no logic.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="src/App.css & src/index.css — styling">
+        <p className="explain-text">
+          <code>index.css</code> — global colors, fonts, dark mode. <code>App.css</code> — layout
+          for tabs, table, status banner, explain panels.
+        </p>
+        <p className="explain-text">
+          Sitewire said don't focus on visual polish — these just make it readable.
+        </p>
+      </ExplainSectionCard>
+
+      <ExplainSectionCard title="Simple Q&A — if they ask…">
         <dl className="explain-qa">
-          <dt>Why batch size 15?</dt>
+          <dt>Why load logins in batches of 15?</dt>
           <dd>
-            Balance speed vs. not overwhelming a flaky API. Enough parallelism for progress, small
-            enough for incremental UI updates. Would tune with real metrics.
+            If we fired 100 requests at once, the slow flaky API would struggle and you'd see nothing
+            until all finish. Batches let rows fill in gradually.
           </dd>
-          <dt>Why not Promise.all for all users?</dt>
+          <dt>What if /users fails vs one login fails?</dt>
           <dd>
-            100+ concurrent requests on a 25%-failure API = thundering herd + long wait with no
-            feedback. Batching shows progress.
+            /users fail = whole page error, no table. One login fail = just that row shows "Failed to
+            load".
           </dd>
-          <dt>Why not React Query?</dt>
+          <dt>How do you find the most recent login?</dt>
           <dd>
-            Small challenge — wanted to show I understand retry/batching/state without hiding it in
-            a library. Production: React Query with per-key retry.
+            Loop through the array and compare dates. The API sends logins in random order.
           </dd>
-          <dt>/users fails vs. one login fails?</dt>
+          <dt>What is a hook?</dt>
           <dd>
-            /users = global error (no table). Single login = row-level "Failed to load" only.
+            A React function that holds state and logic. useEnrichedUsers holds users, loading status,
+            and the load function.
           </dd>
-          <dt>How find most recent login?</dt>
+          <dt>Why not use a library like React Query?</dt>
           <dd>
-            <code>reduce()</code> comparing <code>Date(login_time)</code> — API doesn't sort.
+            For this small app I wanted the retry and batch logic visible in my code. In a real job
+            I'd probably use a data-fetching library.
           </dd>
-          <dt>What would you improve?</dt>
+          <dt>What is fetchIdRef?</dt>
           <dd>
-            Exponential backoff, request dedup, virtualized table, unit tests for retry/batch logic,
-            error boundaries.
+            A counter. Each reload bumps it. Old network responses check "am I still the latest
+            reload?" and bail if not.
           </dd>
         </dl>
       </ExplainSectionCard>
 
       <div className="explain-panel__actions">
         <button type="button" onClick={() => void copyAllNotes()}>
-          Copy all notes
+          Copy short notes
         </button>
       </div>
     </div>

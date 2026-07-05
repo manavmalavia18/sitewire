@@ -8,67 +8,41 @@ type BonusTaskExplainProps = {
 export function BonusTaskExplain({ inactiveCount, countriesLoaded }: BonusTaskExplainProps) {
   return (
     <div className="explain-section-content">
-      <ExplainSectionCard title="Bonus 1 — Humanized login time">
+      <ExplainSectionCard title="Bonus 1 — Friendly login time">
         <p className="explain-text">
-          Relative times like <em>"3 months ago"</em> instead of raw timestamps. Hover for the
-          exact date.
+          Instead of <code>2026-03-15T10:30:00Z</code> we show <em>"3 months ago"</em>.
         </p>
-        <ul className="explain-list">
-          <li>
-            <code>formatDistanceToNow</code> from <code>date-fns</code> in{' '}
-            <code>utils/login.ts</code>
-          </li>
-          <li>
-            <code>title</code> attribute on the cell shows <code>formatLoginTimeExact()</code> on
-            hover
-          </li>
-          <li>Core tab shows raw timestamps; Bonus tab shows humanized</li>
-        </ul>
+        <p className="explain-text">
+          Hover (or tap and hold on phone) to see the exact date. Uses a library called{' '}
+          <code>date-fns</code>.
+        </p>
       </ExplainSectionCard>
 
       <ExplainSectionCard title="Bonus 2 — Country from IP">
         <p className="explain-text">
-          After each login IP is fetched, we look up the country via <code>ipwho.is</code>.
+          After we get the login IP, we ask <code>ipwho.is</code> what country it is in.
         </p>
-        <ul className="explain-list">
-          <li>
-            <code>api/geo.ts</code> — <code>getCountryForIp(ip)</code>
-          </li>
-          <li>In-memory <code>Map</code> cache — duplicate IPs skip the network call</li>
-          <li>Cache cleared on each full reload</li>
-          <li>Geo failure is silent — row shows "—" instead of breaking the load</li>
-        </ul>
+        <p className="explain-text">
+          If two users have the same IP, we only look it up once (cached in memory).
+        </p>
       </ExplainSectionCard>
 
       <ExplainSectionCard title="Bonus 3 — Inactive users">
         <p className="explain-text">
-          Users with no login in the last month get a highlighted row and an{' '}
+          If someone has not logged in for at least 1 month, their row turns light red and gets an{' '}
           <span className="inactive-badge">Inactive</span> badge.
         </p>
-        <ul className="explain-list">
-          <li>
-            <code>isInactiveOverOneMonth()</code> — <code>differenceInCalendarMonths &gt;= 1</code>
-          </li>
-          <li>Only applies when login loaded successfully and has a timestamp</li>
-          <li>
-            <code>UserRow.tsx</code> adds <code>row--inactive</code> class + badge
-          </li>
-        </ul>
       </ExplainSectionCard>
 
       <ExplainSectionCard title="Live status">
         <div className="explain-panel__stats">
           <div className="explain-stat">
-            <span className="explain-stat__label">Countries resolved</span>
+            <span className="explain-stat__label">Countries found</span>
             <strong>{countriesLoaded}</strong>
           </div>
           <div className="explain-stat">
             <span className="explain-stat__label">Inactive users</span>
             <strong>{inactiveCount}</strong>
-          </div>
-          <div className="explain-stat">
-            <span className="explain-stat__label">Humanized dates</span>
-            <strong>On</strong>
           </div>
         </div>
       </ExplainSectionCard>

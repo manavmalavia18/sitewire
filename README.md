@@ -10,6 +10,19 @@ Displays user profiles with last login info from the fake users API, with retry 
 
 - **Dashboard** — user table with login data
 - **Explain this load** — live event log for demo walkthrough
+- **Interview prep** — full walkthrough notes (also available as PDF)
+
+## Interview notes (PDF)
+
+Simple beginner-friendly notes explaining every file. Good for reading on your phone before the interview.
+
+```bash
+npm run pdf
+```
+
+Output: `Sitewire-Interview-Notes.pdf` in the project root.
+
+In the app: open the **Interview prep** tab.
 
 ## Local development
 

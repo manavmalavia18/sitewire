@@ -8,23 +8,28 @@ type BonusTaskExplainProps = {
 export function BonusTaskExplain({ inactiveCount, countriesLoaded }: BonusTaskExplainProps) {
   return (
     <div className="explain-section-content">
-      <ExplainSectionCard title="Bonus 1 — Humanized login time">
+      <ExplainSectionCard title="Bonus 1 — Friendly login time">
         <p className="explain-text">
-          Relative times like <em>"3 months ago"</em> instead of raw timestamps. Hover for the
-          exact date. Built with <code>date-fns</code>.
+          Instead of <code>2026-03-15T10:30:00Z</code> we show <em>"3 months ago"</em>.
+        </p>
+        <p className="explain-text">
+          Hover (or tap and hold on phone) to see the exact date. Uses a library called{' '}
+          <code>date-fns</code>.
         </p>
       </ExplainSectionCard>
 
       <ExplainSectionCard title="Bonus 2 — Country from IP">
         <p className="explain-text">
-          After each login IP is fetched, we look up the country via <code>ipwho.is</code>. IPs
-          are cached so duplicates are not re-fetched.
+          After we get the login IP, we ask <code>ipwho.is</code> what country it is in.
+        </p>
+        <p className="explain-text">
+          If two users have the same IP, we only look it up once (cached in memory).
         </p>
       </ExplainSectionCard>
 
       <ExplainSectionCard title="Bonus 3 — Inactive users">
         <p className="explain-text">
-          Users with no login in the last month get a highlighted row and an{' '}
+          If someone has not logged in for at least 1 month, their row turns light red and gets an{' '}
           <span className="inactive-badge">Inactive</span> badge.
         </p>
       </ExplainSectionCard>
@@ -32,16 +37,12 @@ export function BonusTaskExplain({ inactiveCount, countriesLoaded }: BonusTaskEx
       <ExplainSectionCard title="Live status">
         <div className="explain-panel__stats">
           <div className="explain-stat">
-            <span className="explain-stat__label">Countries resolved</span>
+            <span className="explain-stat__label">Countries found</span>
             <strong>{countriesLoaded}</strong>
           </div>
           <div className="explain-stat">
             <span className="explain-stat__label">Inactive users</span>
             <strong>{inactiveCount}</strong>
-          </div>
-          <div className="explain-stat">
-            <span className="explain-stat__label">Humanized dates</span>
-            <strong>On</strong>
           </div>
         </div>
       </ExplainSectionCard>

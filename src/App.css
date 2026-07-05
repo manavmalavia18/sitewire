@@ -136,6 +136,35 @@ header {
   margin-top: 0.35rem;
 }
 
+.explain-list--ordered {
+  list-style: decimal;
+}
+
+.explain-list--files li code {
+  font-size: 0.85em;
+}
+
+.explain-qa {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.explain-qa dt {
+  margin-top: 0.75rem;
+  color: var(--text-h);
+  font-weight: 600;
+}
+
+.explain-qa dt:first-child {
+  margin-top: 0;
+}
+
+.explain-qa dd {
+  margin: 0.25rem 0 0;
+  color: var(--text);
+}
+
 .explain-text {
   margin: 0;
   font-size: 0.9rem;

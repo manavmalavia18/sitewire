@@ -2,6 +2,7 @@ import { useState } from 'react'
 import './App.css'
 import { BonusTaskExplain } from './components/BonusTaskExplain'
 import { CoreTaskExplain } from './components/CoreTaskExplain'
+import { InterviewPrep } from './components/InterviewPrep'
 import { LoadLogPanel } from './components/LoadLogPanel'
 import { StatusBanner } from './components/StatusBanner'
 import { UserTable } from './components/UserTable'
@@ -10,7 +11,7 @@ import { useEventLog } from './hooks/useEventLog'
 import { isInactiveOverOneMonth } from './utils/login'
 
 type Mode = 'core' | 'bonus'
-type View = 'explain' | 'dashboard' | 'load'
+type View = 'explain' | 'dashboard' | 'load' | 'prep'
 
 function App() {
   const [mode, setMode] = useState<Mode>('core')
@@ -110,6 +111,15 @@ function App() {
           >
             Load log
           </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={view === 'prep'}
+            className={view === 'prep' ? 'sub-tabs__btn sub-tabs__btn--active' : 'sub-tabs__btn'}
+            onClick={() => setView('prep')}
+          >
+            Interview prep
+          </button>
         </div>
 
         {view === 'explain' && (
@@ -146,6 +156,12 @@ function App() {
             {usersStatus === 'success' && (
               <UserTable users={users} variant={mode === 'core' ? 'core' : 'bonus'} />
             )}
+          </div>
+        )}
+
+        {view === 'prep' && (
+          <div role="tabpanel">
+            <InterviewPrep />
           </div>
         )}
 
